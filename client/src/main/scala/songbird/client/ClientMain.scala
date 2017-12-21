@@ -1,5 +1,4 @@
-package glsas.client
-
+package songbird.client
 
 import scala.scalajs.js
 import scalajs.js.timers

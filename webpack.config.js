@@ -1,23 +1,27 @@
 const path = require('path');
 const webpack = require('webpack');
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const config = {
   entry: {
-    main: './client/target/scala-2.12/songbird-client-fastopt.js'
-//    vendor: [
-//      'react', 'react-dom', 'redux', 'react-redux'
-//    ]
+    vendor: ['react', 'react-dom']
   },
-//  plugins: [
-//    new webpack.optimize.CommonsChunkPlugin({
-//      name: 'common',
-//      minChunks: Infinity
-//    })
-//  ],
   output: {
-    filename: '[name].bundle.js',
-    path: path.resolve(__dirname, 'server/public/javascripts')
-  }
+    filename: '[name].bundle.js'
+    //path: path.resolve(__dirname, clientPath) //defined in serverSettings
+  },
+  module: {
+    rules: [
+      {test: /\.css$/, use: 'css-loader' }
+    ]
+  },
+  plugins: [
+    new CopyWebpackPlugin([
+      {from: 'node_modules/bulma/css', to: 'css/'},
+      {from: 'node_modules/font-awesome/css', to: 'css/'},
+      {from: 'node_modules/font-awesome/fonts', to: 'fonts/'},
+    ])
+  ]
 };
 
 module.exports = config;

@@ -1,4 +1,9 @@
 import com.github.cuzfrog.sbttmpfs.SbtTmpfsPlugin.autoImport._
+import com.typesafe.sbt.web.PathMapping
+import com.typesafe.sbt.web.pipeline.Pipeline.Stage
+import sbt.Def
+
+import scala.sys.process.Process
 //import com.typesafe.sbt.packager.Keys._
 //import com.typesafe.sbt.packager.debian.DebianPlugin.autoImport.Debian
 import com.typesafe.sbt.web.SbtWeb.autoImport._
@@ -7,8 +12,10 @@ import play.sbt.PlayImport._
 import sbt.Keys._
 import sbt._
 import spray.revolver.RevolverPlugin.autoImport._
-//import webscalajs.WebScalaJS.autoImport._
+import webscalajs.WebScalaJS.autoImport._
 //import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
+
+import MyTasks._
 
 object AppSettings {
 
@@ -29,10 +36,10 @@ object AppSettings {
     traceLevel := 100
   )
 
-  val clientSettings = {
+  val clientSettings: Seq[Def.Setting[_]] = {
     val jestFramework: TestFramework = new TestFramework("sjest.JestFramework")
     Seq(
-      name := "songbird-client",
+      name := "client",
       scalacOptions ++= Seq(
         "-P:scalajs:sjsDefinedByDefault"
       ),
@@ -57,25 +64,30 @@ object AppSettings {
     )
   }
 
-  val serverSettings = Seq(
-    name := "songbird-server",
-    //mainClass in reStart := Some("Server"),
-    managedClasspath in Runtime += {
-      /*
-      add assets to resources, so akka-http is able to getFromResource
-      modules(lib) in webJar will be automatically incorporated in the packageBin
-      This is required for source map support.
-      */
-      (packageBin in Assets).value
-    },
-    libraryDependencies ++= Seq(
-      guice, ehcache, ws,
-      "com.typesafe.play" %% "twirl-api" % "1.3.8",
-      "com.lihaoyi" %% "scalatags" % "0.6.7",
-      //"org.reactivemongo" %% "reactivemongo" % "0.12.6",
-      "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
+  val serverSettings: Seq[Def.Setting[_]] = {
+    Seq(
+      name := "server",
+      //mainClass in reStart := Some("Server"),
+      isDevMode := true,
+      libraryDependencies ++= Seq(
+        guice, ehcache, ws,
+        "com.typesafe.play" %% "twirl-api" % "1.3.12",
+        "com.lihaoyi" %% "scalatags" % "0.6.7",
+        //"org.reactivemongo" %% "reactivemongo" % "0.12.6",
+        "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
+      ),
+      webpackPipeline := { pathMappings: Seq[PathMapping] =>
+        val venderDir = target.value / "vendor"
+        val exitCode = Process(s"node_modules/webpack/bin/webpack.js --output-path=$venderDir").!
+        if (exitCode != 0) throw new RuntimeException("webpack failed.")
+
+        val webpackMappings = venderDir.allPaths.get.map{ f =>
+          f -> f.relativeTo(venderDir.getParentFile).get.toString
+        }
+        pathMappings ++ webpackMappings
+      }
     )
-  )
+  }
 
   val sharedSettings = Seq(
     libraryDependencies ++= Seq(

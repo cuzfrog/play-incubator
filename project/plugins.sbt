@@ -8,4 +8,5 @@ addSbtPlugin("com.typesafe.play" % "sbt-plugin" % "2.6.9")
 
 //scalajs
 addSbtPlugin("org.scala-js" % "sbt-scalajs" % "0.6.21")
+addSbtPlugin("com.vmunier" % "sbt-web-scalajs" % "1.0.6")
 //addSbtPlugin("ch.epfl.scala" % "sbt-web-scalajs-bundler" % "0.9.0")

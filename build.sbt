@@ -1,4 +1,5 @@
 import AppSettings._
+import MyTasks._
 
 inThisBuild(Seq(
   shellPrompt := { state => Project.extract(state).currentRef.project + "> " },
@@ -7,17 +8,21 @@ inThisBuild(Seq(
   version := "0.0.1-SNAPSHOT"
 ))
 
+val root = project.in(file("."))
+  .aggregate(client, server)
 
 lazy val server = project.dependsOn(sharedJVM)
-  .enablePlugins(PlayScala)
+  .enablePlugins(PlayScala, SbtWeb)
   .settings(serverSettings, commonSettings)
   .settings(
+    scalaJSProjects := Seq(client),
+    pipelineStages in Assets := Seq(webpackPipeline, scalaJSPipeline),
     addCommandAlias("packDeb", ";reload;clean;" +
       "set isDevMode := false;debian:packageBin;set isDevMode := true")
   )
 
 lazy val client = project.dependsOn(sharedJS)
-  .enablePlugins(ScalaJSPlugin)
+  .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
   .settings(clientSettings, commonSettings)
 
 lazy val shared = crossProject.crossType(CrossType.Pure)
@@ -34,7 +39,7 @@ lazy val sharedJS = shared.js
 //mount tmpfs:
 onLoad in Global := {
   val insertCommand: State => State = (state: State) => {
-    val tmpfsProjects = Vector(server, client, sharedJVM, sharedJS)
+    val tmpfsProjects = Vector(root, server, client, sharedJVM, sharedJS)
     val cmd = tmpfsProjects.map(p => s";${p.id}/tmpfsOn").mkString
     state.copy(remainingCommands = Exec(cmd, None) +: state.remainingCommands)
   }
