@@ -9,10 +9,8 @@ object IndexPage {
     html(
       head(
         scalatags.Text.tags2.title(Messages("index.title")),
-        link(rel := "stylesheet", href := "assets/webpack/css/bulma.css"),
-        //link(rel := "stylesheet", href := "assets/addition.css"),
-        link(rel := "stylesheet", href := "assets/webpack/css/font-awesome.min.css"),
-        script(`type` := "text/javascript", src := "assets/webpack/vendor.bundle.js")
+        link(rel := "stylesheet", href := "assets/bulma/css/bulma.css"),
+        link(rel := "stylesheet", href := "assets/font-awesome/css/font-awesome.min.css")
       ),
       body(
         div(id := "app"),
@@ -20,5 +18,5 @@ object IndexPage {
       )
     ).render
 
-  private def jsUrl = "assets/webpack/main.bundle.js"
+  private def jsUrl = "assets/client-fastopt-bundle.js"
 }

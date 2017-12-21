@@ -13,8 +13,8 @@ import sbt.Keys._
 import sbt._
 import spray.revolver.RevolverPlugin.autoImport._
 import webscalajs.WebScalaJS.autoImport._
-//import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
-
+import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
+import scalajsbundler.sbtplugin.WebScalaJSBundlerPlugin.autoImport._
 import MyTasks._
 
 object AppSettings {
@@ -46,6 +46,9 @@ object AppSettings {
       scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
       scalaJSUseMainModuleInitializer := true,
       scalaJSStage in Test := FastOptStage,
+      version in webpack := "3.10.0",
+      version in startWebpackDevServer := "2.9.1",
+      webpackBundlingMode := BundlingMode.LibraryAndApplication(),
       libraryDependencies ++= {
         val sriVersion = "0.2.0"
         Seq(
@@ -60,7 +63,15 @@ object AppSettings {
       },
       testFrameworks += jestFramework,
       testOptions += Tests.Argument(jestFramework,
-        s"-opt.js.path:${(artifactPath in Test in fastOptJS).value}")
+        s"-opt.js.path:${(artifactPath in Test in fastOptJS).value}"),
+      tmpfsMappingDirectories := Map(
+        baseDirectory.value.getParentFile / "node_modules" ->
+          Seq(
+            crossTarget.value / "scalajs-bundler" / "main" / "node_modules",
+            crossTarget.value / "scalajs-bundler" / "test" / "node_modules"
+          )
+      ),
+      tmpfsMountSizeLimit := 512
     )
   }
 
@@ -84,7 +95,7 @@ object AppSettings {
           Process(s"node_modules/webpack/bin/webpack.js $outputArg").!
         }
         if (exitCode != 0) throw new RuntimeException("webpack failed.")
-        val webpackMappings = dir.allPaths.get.map{ f =>
+        val webpackMappings = dir.allPaths.get.map { f =>
           f -> f.relativeTo(dir.getParentFile).get.toString
         }
         pathMappings ++ webpackMappings
@@ -92,9 +103,16 @@ object AppSettings {
     )
   }
 
-  val sharedSettings = Seq(
-    libraryDependencies ++= Seq(
-      "com.typesafe.play" %%% "play-json" % "2.6.3"
+  val sharedSettings: Seq[Def.Setting[_]] = {
+    val monocleVersion = "1.4.0"
+    Seq(
+      libraryDependencies ++= Seq(
+        "com.typesafe.play" %%% "play-json" % "2.6.8",
+        "com.beachape" %%% "enumeratum" % "1.5.12",
+        "com.github.julien-truffaut" %%% "monocle-core" % monocleVersion,
+        "com.github.julien-truffaut" %%% "monocle-macro" % monocleVersion,
+        "com.github.julien-truffaut" %%% "monocle-law" % monocleVersion % "test"
+      )
     )
-  )
+  }
 }

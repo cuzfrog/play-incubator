@@ -12,17 +12,23 @@ val root = project.in(file("."))
   .aggregate(client, server)
 
 lazy val server = project.dependsOn(sharedJVM)
-  .enablePlugins(PlayScala, SbtWeb)
+  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin)
   .settings(serverSettings, commonSettings)
   .settings(
     scalaJSProjects := Seq(client),
-    pipelineStages in Assets := Seq(webpackPipeline, scalaJSPipeline),
+    pipelineStages in Assets := Seq(scalaJSPipeline),
+    npmAssets ++= NpmAssets.ofProject(client){ nodeModules=>
+      val vendors = Seq("bulma/css",
+        "font-awesome/css",
+        "font-awesome/fonts")
+      vendors.map(nodeModules / _).allPaths
+    }.value,
     addCommandAlias("packDeb", ";reload;clean;" +
       "set isDevMode := false;debian:packageBin;set isDevMode := true")
   )
 
 lazy val client = project.dependsOn(sharedJS)
-  .enablePlugins(ScalaJSPlugin, ScalaJSWeb)
+  .enablePlugins(ScalaJSPlugin, ScalaJSBundlerPlugin)
   .settings(clientSettings, commonSettings)
 
 lazy val shared = crossProject.crossType(CrossType.Pure)
