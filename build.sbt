@@ -37,11 +37,6 @@ lazy val sharedJS = shared.js
 // play.sbt.routes.RoutesKeys.routesImport += "com.example.bi
 
 //mount tmpfs:
-onLoad in Global := {
-  val insertCommand: State => State = (state: State) => {
-    val tmpfsProjects = Vector(root, server, client, sharedJVM, sharedJS)
-    val cmd = tmpfsProjects.map(p => s";${p.id}/tmpfsOn").mkString
-    state.copy(remainingCommands = Exec(cmd, None) +: state.remainingCommands)
-  }
-  (onLoad in Global).value andThen insertCommand
-}
+val tmpfsProjects = Vector(root, server, client, sharedJVM, sharedJS)
+val cmd = tmpfsProjects.map(p => s";${p.id}/tmpfsOn").mkString
+addCommandAlias("tmpfsAllOn", cmd)

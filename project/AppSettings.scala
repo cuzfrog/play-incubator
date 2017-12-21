@@ -69,6 +69,7 @@ object AppSettings {
       name := "server",
       //mainClass in reStart := Some("Server"),
       isDevMode := true,
+      WebKeys.exportedMappings in Assets := Seq(), //play framework #5242
       libraryDependencies ++= Seq(
         guice, ehcache, ws,
         "com.typesafe.play" %% "twirl-api" % "1.3.12",
@@ -77,12 +78,14 @@ object AppSettings {
         "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
       ),
       webpackPipeline := { pathMappings: Seq[PathMapping] =>
-        val venderDir = target.value / "vendor"
-        val exitCode = Process(s"node_modules/webpack/bin/webpack.js --output-path=$venderDir").!
+        val dir = target.value / "webpack"
+        val exitCode = {
+          val outputArg = s"--output-path=$dir"
+          Process(s"node_modules/webpack/bin/webpack.js $outputArg").!
+        }
         if (exitCode != 0) throw new RuntimeException("webpack failed.")
-
-        val webpackMappings = venderDir.allPaths.get.map{ f =>
-          f -> f.relativeTo(venderDir.getParentFile).get.toString
+        val webpackMappings = dir.allPaths.get.map{ f =>
+          f -> f.relativeTo(dir.getParentFile).get.toString
         }
         pathMappings ++ webpackMappings
       }
