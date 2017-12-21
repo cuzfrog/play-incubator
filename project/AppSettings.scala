@@ -13,6 +13,7 @@ import sbt.Keys._
 import sbt._
 import spray.revolver.RevolverPlugin.autoImport._
 import webscalajs.WebScalaJS.autoImport._
+import webscalajs.ScalaJSWeb.autoImport._
 import scalajsbundler.sbtplugin.ScalaJSBundlerPlugin.autoImport._
 import scalajsbundler.sbtplugin.WebScalaJSBundlerPlugin.autoImport._
 import MyTasks._
@@ -99,7 +100,8 @@ object AppSettings {
           f -> f.relativeTo(dir.getParentFile).get.toString
         }
         pathMappings ++ webpackMappings
-      }
+      },
+      compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value
     )
   }
 
