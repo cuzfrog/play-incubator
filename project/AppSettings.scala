@@ -49,9 +49,9 @@ object AppSettings {
       scalaJSStage in Test := FastOptStage,
       version in webpack := "3.10.0",
       version in startWebpackDevServer := "2.9.1",
-      webpackBundlingMode := BundlingMode.LibraryAndApplication(),
+      webpackBundlingMode := BundlingMode.LibraryOnly(),
       libraryDependencies ++= {
-        val sriVersion = "0.2.0"
+        val sriVersion = "0.3.0"
         Seq(
           "org.scala-js" %%% "scalajs-java-time" % "0.2.3",
           "org.scala-js" %%% "scalajs-dom" % "0.9.4",
@@ -89,18 +89,6 @@ object AppSettings {
         //"org.reactivemongo" %% "reactivemongo" % "0.12.6",
         "org.scalatestplus.play" %% "scalatestplus-play" % "3.1.2" % Test
       ),
-      webpackPipeline := { pathMappings: Seq[PathMapping] =>
-        val dir = target.value / "webpack"
-        val exitCode = {
-          val outputArg = s"--output-path=$dir"
-          Process(s"node_modules/webpack/bin/webpack.js $outputArg").!
-        }
-        if (exitCode != 0) throw new RuntimeException("webpack failed.")
-        val webpackMappings = dir.allPaths.get.map { f =>
-          f -> f.relativeTo(dir.getParentFile).get.toString
-        }
-        pathMappings ++ webpackMappings
-      },
       compile in Compile := ((compile in Compile) dependsOn scalaJSPipeline).value
     )
   }

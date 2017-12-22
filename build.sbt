@@ -12,14 +12,14 @@ val root = project.in(file("."))
   .aggregate(client, server)
 
 lazy val server = project.dependsOn(sharedJVM)
-  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin)
+  .enablePlugins(PlayScala, WebScalaJSBundlerPlugin, WebScalaJS)
   .settings(serverSettings, commonSettings)
   .settings(
     scalaJSProjects := Seq(client),
     pipelineStages in Assets := Seq(scalaJSPipeline),
-    npmAssets ++= NpmAssets.ofProject(client){ nodeModules=>
-      val vendors = Seq("bulma/css",
-        "font-awesome/css",
+    npmAssets ++= NpmAssets.ofProject(client) { nodeModules =>
+      val vendors = Seq("bulma/css/bulma.css",
+        "font-awesome/css/font-awesome.min.css",
         "font-awesome/fonts")
       vendors.map(nodeModules / _).allPaths
     }.value,

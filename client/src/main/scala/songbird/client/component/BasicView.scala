@@ -12,5 +12,5 @@ final class BasicView extends ComponentP[BasicView.Props] {
 object BasicView {
   case class Props(value: String = "hello world!")
 
-  def apply(props: Props = Props()): CompositeElement = CreateElement(new BasicView)(props)
+  def apply(props: Props = Props()): CompositeElement = CreateElement[BasicView](props)
 }
